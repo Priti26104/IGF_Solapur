@@ -290,6 +290,9 @@ from .forms import InviteForm
 from .models import InviteToken
 
 
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
+
 @login_required
 def send_invite(request):
     user = request.user
@@ -303,18 +306,10 @@ def send_invite(request):
 
     if request.method == "POST":
 
-        print("=" * 50)
-        print("POST REQUEST RECEIVED")
-
         if form.is_valid():
-
-            print("FORM IS VALID")
 
             email = form.cleaned_data["email"]
             name = form.cleaned_data.get("name")
-
-            print("Email:", email)
-            print("Name:", name)
 
             try:
                 invite = InviteToken.objects.create(
@@ -323,37 +318,133 @@ def send_invite(request):
                     role=role
                 )
 
-                print("INVITE CREATED")
-                print("TOKEN:", invite.token)
-
                 reg_url = f"{settings.SITE_URL}/register/?token={invite.token}"
 
-                print("REGISTRATION URL:", reg_url)
+                subject = "🌸 You're Invited to Join IGF Sadhana Tracker"
 
-                result = send_mail(
-                    subject="You are invited to IGF Sadhana Tracker 🌸",
-                    message=f"""
+                text_content = f"""
 Hare Krishna!
 
 {name},
 
 You have been invited to join the ISKCON Girls Forum (IGF) Sadhana Tracker as a {role}.
 
-Please click the link below to register:
-
+Register here:
 {reg_url}
 
 This invitation is valid for 7 days.
 
-Jai Radhe! 🙏
+Hare Krishna 🙏
 IGF Team
-                    """,
+"""
+
+                html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+</head>
+<body style="margin:0;padding:0;background:#FFF8FB;font-family:Arial,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FFF8FB;padding:30px 0;">
+<tr>
+<td align="center">
+
+<table width="600" cellpadding="0" cellspacing="0"
+style="background:#ffffff;border-radius:16px;overflow:hidden;
+box-shadow:0 5px 20px rgba(0,0,0,0.08);">
+
+<tr>
+<td style="background:#FCE4EC;padding:30px;text-align:center;">
+<h1 style="margin:0;color:#C2185B;">
+🌸 IGF Sadhana Tracker
+</h1>
+<p style="margin-top:10px;color:#6D4C41;">
+ISKCON Girls Forum
+</p>
+</td>
+</tr>
+
+<tr>
+<td style="padding:35px;">
+
+<h2 style="color:#C2185B;margin-top:0;">
+Hare Krishna, {name}! 🙏
+</h2>
+
+<p style="font-size:15px;color:#444;line-height:1.7;">
+You have been invited to join the
+<strong>ISKCON Girls Forum (IGF) Sadhana Tracker</strong>
+as a <strong>{role.title()}</strong>.
+</p>
+
+<p style="font-size:15px;color:#444;line-height:1.7;">
+Use the button below to complete your registration.
+</p>
+
+<div style="text-align:center;margin:35px 0;">
+<a href="{reg_url}"
+style="
+background:#E91E63;
+color:white;
+text-decoration:none;
+padding:14px 32px;
+border-radius:8px;
+font-weight:bold;
+font-size:16px;
+display:inline-block;
+">
+Register Now
+</a>
+</div>
+
+<p style="font-size:14px;color:#666;">
+⏳ This invitation link is valid for <strong>7 days</strong>.
+</p>
+
+<p style="font-size:14px;color:#666;">
+If the button does not work, copy and paste this link into your browser:
+</p>
+
+<p style="word-break:break-all;color:#E91E63;font-size:13px;">
+{reg_url}
+</p>
+
+</td>
+</tr>
+
+<tr>
+<td style="background:#FCE4EC;padding:20px;text-align:center;">
+<p style="margin:0;color:#6D4C41;font-size:13px;">
+Hare Krishna 🙏<br>
+IGF Sadhana Tracker Team
+</p>
+</td>
+</tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>
+"""
+
+                email_message = EmailMultiAlternatives(
+                    subject=subject,
+                    body=text_content,
                     from_email=settings.EMAIL_HOST_USER,
-                    recipient_list=[email],
-                    fail_silently=False,
+                    to=[email],
                 )
 
-                print("EMAIL RESULT:", result)
+                email_message.attach_alternative(
+                    html_content,
+                    "text/html"
+                )
+
+                email_message.send()
 
                 messages.success(
                     request,
@@ -361,26 +452,12 @@ IGF Team
                 )
 
             except Exception as e:
-
-                print("ERROR OCCURRED")
-                print(str(e))
-
                 messages.error(
                     request,
                     f"Email failed: {str(e)}"
                 )
 
             return redirect("invite_list")
-
-        else:
-
-            print("FORM INVALID")
-            print(form.errors)
-
-            messages.error(
-                request,
-                f"Form Error: {form.errors}"
-            )
 
     invites = InviteToken.objects.filter(
         invited_by=user
