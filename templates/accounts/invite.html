@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Send Invite – IGF{% endblock %}
+{% block page_title %}✉️ Send Invitation{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-12 col-md-5">
+    <div class="form-card">
+      <h5 class="fw-bold mb-1" style="color:var(--pink-dark);">
+        {% if role == 'mentor' %}Invite a Mentor{% else %}Invite a Mentee{% endif %}
+      </h5>
+      <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:1.5rem;">
+        An invite link will be sent to their email. Valid for 7 days.
+      </p>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label fw-600" style="font-size:.85rem;">Name</label>
+          {{ form.name }}
+          {% if form.name.errors %}<div class="text-danger" style="font-size:.8rem;">{{ form.name.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-600" style="font-size:.85rem;">Email</label>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="text-danger" style="font-size:.8rem;">{{ form.email.errors.0 }}</div>{% endif %}
+        </div>
+        <button type="submit" class="btn-pink w-100 justify-content-center">
+          <i class="bi bi-envelope-plus"></i> Send Invitation
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-7">
+    <div class="card p-3">
+      <h6 class="fw-bold mb-3" style="color:var(--pink-dark);">📋 Recent Invites</h6>
+      {% for inv in invites %}
+      <div class="d-flex align-items-center gap-3 py-2" style="border-bottom:1px solid var(--pink-primary);">
+        <div class="flex-1">
+          <div class="fw-600" style="font-size:.9rem;">{{ inv.email }}</div>
+          <div style="font-size:.75rem;color:var(--text-muted);">
+            Sent {{ inv.created_at|timesince }} ago · Expires {{ inv.expires_at|date:"d M" }}
+          </div>
+        </div>
+        {% if inv.is_used %}
+          <span class="badge" style="background:#C8E6C9;color:#1B5E20;">✅ Used</span>
+        {% elif inv.is_valid %}
+          <span class="badge" style="background:var(--pink-primary);color:var(--pink-dark);">⏳ Pending</span>
+        {% else %}
+          <span class="badge" style="background:#FFCDD2;color:#B71C1C;">❌ Expired</span>
+        {% endif %}
+      </div>
+      {% empty %}
+        <p style="color:var(--text-muted);font-size:.9rem;">No invites sent yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

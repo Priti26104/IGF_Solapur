@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Announcements – IGF{% endblock %}
+{% block page_title %}📢 Announcements{% endblock %}
+
+{% block content %}
+
+{% if request.user.is_admin or request.user.is_mentor %}
+<div class="d-flex justify-content-end mb-3">
+  <a href="{% url 'create_announcement' %}" class="btn-pink">
+    <i class="bi bi-plus-circle"></i> New Announcement
+  </a>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  {% for ann in announcements %}
+  <div class="col-12 col-md-6">
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <h6 class="fw-bold mb-0" style="color:var(--pink-dark);font-size:.95rem;">{{ ann.title }}</h6>
+        <span class="badge" style="background:var(--card-bg);color:var(--text-muted);font-size:.7rem;">
+          {{ ann.get_audience_display }}
+        </span>
+      </div>
+      <p style="font-size:.87rem;color:var(--text-dark);line-height:1.5;margin-bottom:.75rem;">{{ ann.content|truncatewords:40 }}</p>
+
+      {% if ann.image %}
+      <img src="{{ ann.image.url }}" alt="{{ ann.title }}" style="width:100%;border-radius:10px;margin-bottom:.75rem;max-height:200px;object-fit:cover;">
+      {% endif %}
+
+      {% if ann.attachment %}
+      <a href="{{ ann.attachment.url }}" target="_blank" class="btn-outline-pink d-inline-flex" style="font-size:.8rem;padding:.3rem .8rem;margin-bottom:.75rem;">
+        <i class="bi bi-paperclip"></i> View Attachment
+      </a>
+      {% endif %}
+
+      <div class="d-flex justify-content-between align-items-center" style="font-size:.75rem;color:var(--text-muted);">
+        <span>By {{ ann.posted_by.name }}</span>
+        <span>{{ ann.created_at|date:"d M Y" }}</span>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card p-5 text-center">
+      <div style="font-size:3rem;margin-bottom:.75rem;">📢</div>
+      <p style="color:var(--text-muted);">No announcements yet.</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

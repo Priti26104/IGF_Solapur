@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Reports – IGF{% endblock %}
+{% block page_title %}📊 Reports{% endblock %}
+
+{% block content %}
+
+<!-- Filter Card -->
+<!-- Filter Card -->
+<div class="card p-3 mb-4">
+  <h6 class="fw-bold mb-3" style="color:var(--pink-dark);">🔍 Filter Reports</h6>
+  <form method="get" novalidate>
+    <div class="row g-2 align-items-end">
+
+      {% if not request.user.is_mentee %}
+      <!-- Name search: visible to admin & mentor -->
+      <div class="col-12 col-md-3">
+        <label class="form-label" style="font-size:.78rem;">Search Name</label>
+        {{ form.name }}
+      </div>
+      {% endif %}
+
+      <div class="col-6 col-md-3">
+        <label class="form-label" style="font-size:.78rem;">From Date</label>
+        {{ form.date_from }}
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label" style="font-size:.78rem;">To Date</label>
+        {{ form.date_to }}
+      </div>
+
+      <div class="col-12 col-md-3 d-flex gap-2">
+        <button type="submit" class="btn-pink flex-fill justify-content-center" style="padding:.55rem;">
+          <i class="bi bi-funnel"></i> Filter
+        </button>
+        <a href="{% url 'reports' %}" class="btn-outline-pink" style="padding:.55rem .75rem;">✕</a>
+      </div>
+
+    </div>
+    <!-- Export -->
+    <div class="mt-2">
+      <button type="submit" name="export_csv" value="1"
+        class="btn-outline-pink" style="font-size:.82rem;padding:.35rem .9rem;">
+        <i class="bi bi-download"></i> Export CSV
+      </button>
+    </div>
+  </form>
+</div>
+    
+
+<!-- Results count -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <span style="font-size:.85rem;color:var(--text-muted);">Showing {{ entries|length }} entries</span>
+</div>
+
+<!-- Mobile Card View -->
+<div class="card-table">
+  {% for e in entries %}
+  <div class="sadhana-card">
+    <div class="s-header">
+      <div>
+        <div class="s-name">{{ e.user.name }}</div>
+        <div class="s-date">{{ e.date|date:"d M Y" }} · {{ e.user.city|default:"—" }}</div>
+      </div>
+      <span class="badge badge-{{ e.completion_label }}">
+        {% if e.completion_label == 'complete' %}Complete{% elif e.completion_label == 'partial' %}Partial{% else %}Minimal{% endif %}
+      </span>
+    </div>
+    <div class="sadhana-grid">
+      <div class="sadhana-item">
+        <div class="s-label">Wake Up</div>
+        <div class="s-value">{{ e.wake_up_time|time:"g:i A"|default:"—" }}</div>
+      </div>
+      <div class="sadhana-item">
+        <div class="s-label">Chanting</div>
+        <div class="s-value">{{ e.chant_count }} rounds</div>
+      </div>
+      <div class="sadhana-item">
+        <div class="s-label">Mangal Arati</div>
+        <div class="s-value">{% if e.mangal_arati %}✅{% else %}❌{% endif %}</div>
+      </div>
+      <div class="sadhana-item">
+        <div class="s-label">Reading</div>
+        <div class="s-value">{{ e.read_minutes }} min</div>
+      </div>
+      <div class="sadhana-item">
+        <div class="s-label">Hearing</div>
+        <div class="s-value">{{ e.hear_minutes }} min</div>
+      </div>
+      <div class="sadhana-item">
+        <div class="s-label">Mentor</div>
+        <div class="s-value" style="font-size:.8rem;">{{ e.user.mentor.name|default:"—" }}</div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="card p-4 text-center">
+    <p style="color:var(--text-muted);">No entries found for the selected filters.</p>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Desktop Table View -->
+<div class="wide-table">
+  <div class="card p-0 overflow-hidden">
+    <table class="table table-hover mb-0" style="font-size:.87rem;">
+      <thead style="background:var(--card-bg);">
+        <tr>
+          <th style="padding:.75rem 1rem;color:var(--text-muted);font-weight:600;">Name</th>
+          {% if request.user.is_admin %}<th style="padding:.75rem 1rem;color:var(--text-muted);font-weight:600;">Mentor</th>{% endif %}
+          <th style="padding:.75rem 1rem;color:var(--text-muted);font-weight:600;">Date</th>
+          <th style="padding:.75rem 1rem;color:var(--text-muted);font-weight:600;">Wake Up</th>
+          <th style="padding:.75rem 1rem;color:var(--text-muted);font-weight:600;">Rounds</th>
+          <th style="padding:.75rem 1rem;color:var(--text-muted);font-weight:600;">Mangal</th>
+          <th style="padding:.75rem 1rem;color:var(--text-muted);font-weight:600;">Read</th>
+          <th style="padding:.75rem 1rem;color:var(--text-muted);font-weight:600;">Hear</th>
+          <th style="padding:.75rem 1rem;color:var(--text-muted);font-weight:600;">Service</th>
+          <th style="padding:.75rem 1rem;color:var(--text-muted);font-weight:600;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in entries %}
+        <tr style="border-color:var(--pink-primary);">
+          <td style="padding:.65rem 1rem;">
+            <div class="fw-600">{{ e.user.name }}</div>
+            <div style="font-size:.75rem;color:var(--text-muted);">{{ e.user.city|default:"" }}</div>
+          </td>
+          {% if request.user.is_admin %}
+          <td style="padding:.65rem 1rem;">{{ e.user.mentor.name|default:"—" }}</td>
+          {% endif %}
+          <td style="padding:.65rem 1rem;">{{ e.date|date:"d M Y" }}</td>
+          <td style="padding:.65rem 1rem;">{{ e.wake_up_time|time:"g:i A"|default:"—" }}</td>
+          <td style="padding:.65rem 1rem;font-weight:600;color:var(--pink-dark);">{{ e.chant_count }}</td>
+          <td style="padding:.65rem 1rem;">{% if e.mangal_arati %}✅{% else %}❌{% endif %}</td>
+          <td style="padding:.65rem 1rem;">{{ e.read_minutes }}m</td>
+          <td style="padding:.65rem 1rem;">{{ e.hear_minutes }}m</td>
+          <td style="padding:.65rem 1rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ e.service|default:"—" }}</td>
+          <td style="padding:.65rem 1rem;">
+            <span class="badge badge-{{ e.completion_label }}">
+              {% if e.completion_label == 'complete' %}Complete{% elif e.completion_label == 'partial' %}Partial{% else %}Minimal{% endif %}
+            </span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="10" class="text-center py-4" style="color:var(--text-muted);">No entries found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

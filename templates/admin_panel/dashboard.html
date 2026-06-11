@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard – IGF{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="stat-card">
+      <div class="stat-icon">🙏</div>
+      <div class="stat-value">{{ total_devotees }}</div>
+      <div class="stat-label">Total Devotees</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="stat-card">
+      <div class="stat-icon">🌸</div>
+      <div class="stat-value">{{ total_mentors }}</div>
+      <div class="stat-label">Mentors</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="stat-card">
+      <div class="stat-icon">💜</div>
+      <div class="stat-value">{{ total_mentees }}</div>
+      <div class="stat-label">Mentees</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-value">{{ today_entries }}</div>
+      <div class="stat-label">Today's Entries</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="stat-card">
+      <div class="stat-icon" style="color:#EF5350;">⏳</div>
+      <div class="stat-value" style="color:#EF5350;">{{ pending }}</div>
+      <div class="stat-label">Pending Today</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="stat-card">
+      <div class="stat-icon">📿</div>
+      <div class="stat-value">{{ avg_chanting }}</div>
+      <div class="stat-label">Avg Rounds Today</div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-lg-8">
+    <div class="card p-3 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0 fw-bold" style="color:var(--pink-dark);">📊 Sadhana Trends</h6>
+        <select id="analyticsDays" class="form-select form-select-sm" style="width:auto;">
+          <option value="7">Last 7 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="60">Last 60 days</option>
+        </select>
+      </div>
+      <canvas id="chantChart" height="120"></canvas>
+    </div>
+  </div>
+  <div class="col-12 col-lg-4">
+    <div class="card p-3 h-100">
+      <h6 class="mb-3 fw-bold" style="color:var(--pink-dark);">📅 Daily Submissions</h6>
+      <canvas id="submissionsChart" height="160"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card p-3">
+      <h6 class="mb-3 fw-bold" style="color:var(--pink-dark);">📖 Reading & Hearing Trends</h6>
+      <canvas id="readHearChart" height="80" id="analyticsChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Notifications + Recent Users -->
+<div class="row g-3">
+  {% if notifications %}
+  <div class="col-12 col-md-5">
+    <div class="card p-3">
+      <h6 class="fw-bold mb-3" style="color:var(--pink-dark);">🔔 Notifications</h6>
+      {% for n in notifications %}
+      <div class="alert alert-{{ n.notif_type }} py-2 mb-2" style="font-size:.85rem;">
+        {{ n.message }}
+        <small class="d-block text-muted">{{ n.created_at|timesince }} ago</small>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="col-12 col-md-7">
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0" style="color:var(--pink-dark);">🆕 Recent Registrations</h6>
+        <a href="{% url 'mentee_list' %}" class="btn-outline-pink" style="font-size:.8rem;padding:.3rem .8rem;">View All</a>
+      </div>
+      {% for u in recent_users %}
+      <div class="d-flex align-items-center gap-3 py-2 border-bottom" style="border-color:var(--pink-primary)!important;">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--pink-primary);display:flex;align-items:center;justify-content:center;font-size:1rem;">🌸</div>
+        <div class="flex-1">
+          <div class="fw-600" style="font-size:.9rem;">{{ u.name }}</div>
+          <div style="font-size:.75rem;color:var(--text-muted);">{{ u.city }} · {{ u.created_at|date:"d M Y" }}</div>
+        </div>
+        <span class="badge badge-role-{{ u.role }}">{{ u.role|capfirst }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-3 mt-2">
+  <div class="col-12">
+    <div class="card p-3">
+      <h6 class="fw-bold mb-3" style="color:var(--pink-dark);">⚡ Quick Actions</h6>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'send_invite' %}" class="btn-pink"><i class="bi bi-person-plus"></i> Invite Mentor</a>
+        <a href="{% url 'create_announcement' %}" class="btn-pink"><i class="bi bi-megaphone"></i> Post Announcement</a>
+        <a href="{% url 'create_lecture' %}" class="btn-pink"><i class="bi bi-plus-circle"></i> Add Lecture</a>
+        <a href="{% url 'reports' %}" class="btn-outline-pink"><i class="bi bi-download"></i> Export Reports</a>
+        <a href="{% url 'hierarchy' %}" class="btn-outline-pink"><i class="bi bi-diagram-3"></i> View Hierarchy</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Trigger analytics on load
+  document.addEventListener('DOMContentLoaded', function() {
+    // analyticsChart canvas id triggers loading in igf.js
+    document.getElementById('readHearChart').id = 'analyticsChart';
+  });
+</script>
+{% endblock %}

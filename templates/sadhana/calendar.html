@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load igf_tags %}
+{% block title %}Sadhana Calendar – IGF{% endblock %}
+{% block page_title %}📅 Sadhana Calendar{% endblock %}
+
+{% block content %}
+
+<div style="max-width:540px;margin:0 auto;">
+
+  <!-- Calendar Header -->
+  <div class="card p-3 mb-3">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn-outline-pink" style="padding:.3rem .8rem;font-size:.85rem;">
+        <i class="bi bi-chevron-left"></i>
+      </a>
+      <h5 class="mb-0 fw-bold" style="color:var(--pink-dark);">{{ month_name }}</h5>
+      <a href="?year={{ next_year }}&month={{ next_month }}" class="btn-outline-pink" style="padding:.3rem .8rem;font-size:.85rem;">
+        <i class="bi bi-chevron-right"></i>
+      </a>
+    </div>
+
+    <!-- Legend -->
+    <div class="d-flex gap-3 mb-3 justify-content-center" style="font-size:.75rem;">
+      <span><span class="cal-day complete" style="display:inline-flex;width:20px;height:20px;font-size:.6rem;"> </span> Complete</span>
+      <span><span class="cal-day partial" style="display:inline-flex;width:20px;height:20px;font-size:.6rem;"> </span> Partial</span>
+      <span><span class="cal-day no-entry" style="display:inline-flex;width:20px;height:20px;font-size:.6rem;"> </span> Missed</span>
+    </div>
+
+    <!-- Day headers -->
+    <div class="calendar-grid mb-1">
+      {% for day in "Mon,Tue,Wed,Thu,Fri,Sat,Sun"|split:"," %}
+        <div class="cal-day-header">{{ day }}</div>
+      {% endfor %}
+    </div>
+
+    <!-- Days grid -->
+    <div class="calendar-grid">
+      {% for d in cal_days %}
+        {% if d == None %}
+          <div class="cal-day empty"></div>
+        {% else %}
+          {% with label=entries|default_if_none:""|lower %}
+          {% with day_label=entries|dictsort:"date" %}
+            <a href="{% if d in entries %}{% url 'sadhana_detail' target.id d|date:'Y-m-d' %}{% else %}#{% endif %}"
+               class="cal-day
+                 {% if d == today %}today{% endif %}
+                 {% if d > today %}future{% endif %}
+                 {% if d in entries %}{{ entries|get_item:d }}{% elif d < today %}no-entry{% endif %}"
+               title="{{ d|date:'d M Y' }}">
+              {{ d.day }}
+            </a>
+          {% endwith %}
+          {% endwith %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="d-flex gap-2 justify-content-center">
+    {% if target == request.user %}
+      <a href="{% url 'sadhana_form' %}" class="btn-pink"><i class="bi bi-journal-plus"></i> Add Today's Sadhana</a>
+    {% endif %}
+    <a href="{% url 'dashboard' %}" class="btn-outline-pink"><i class="bi bi-arrow-left"></i> Back</a>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Template filter workaround for dict lookup
+document.querySelectorAll('.cal-day').forEach(el => {
+  if (el.classList.contains('no-entry') && el.closest) {
+    // already styled
+  }
+});
+</script>
+{% endblock %}

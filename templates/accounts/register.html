@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Register – IGF{% endblock %}
+
+{% block content %}
+<div class="login-page">
+  <div class="login-card" style="max-width:520px;">
+    <div class="text-center mb-4">
+      <div style="font-size:2.5rem;">🌸</div>
+      <h1 style="font-size:1.5rem;font-weight:700;color:var(--pink-dark);">Join IGF Sadhana Tracker</h1>
+      <p style="color:var(--text-muted);font-size:.85rem;">Complete your registration below</p>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="token" value="{{ token }}">
+
+      {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label fw-600" style="font-size:.85rem;">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div class="text-danger" style="font-size:.8rem;">{{ field.errors.0 }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <button type="submit" class="btn-pink w-100 justify-content-center mt-2" style="font-size:1rem;padding:.8rem;">
+        <i class="bi bi-person-check"></i> Complete Registration
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

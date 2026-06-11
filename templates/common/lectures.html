@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Lectures – IGF{% endblock %}
+{% block page_title %}🎬 Lectures{% endblock %}
+
+{% block content %}
+
+{% if request.user.is_admin %}
+<div class="d-flex justify-content-end mb-3">
+  <a href="{% url 'create_lecture' %}" class="btn-pink">
+    <i class="bi bi-plus-circle"></i> Add Lecture
+  </a>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  {% for lec in lectures %}
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="card p-3">
+
+      <!-- YouTube Embed -->
+      <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:10px;overflow:hidden;margin-bottom:.75rem;">
+        <iframe
+          src="{{ lec.youtube_embed }}"
+          style="position:absolute;top:0;left:0;width:100%;height:100%;"
+          frameborder="0"
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen>
+        </iframe>
+      </div>
+
+      <h6 class="fw-bold mb-1" style="color:var(--text-dark);font-size:.92rem;">{{ lec.title }}</h6>
+      <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.5rem;">
+        🎙️ {{ lec.speaker }}
+      </div>
+
+      {% if lec.description %}
+      <p style="font-size:.82rem;color:var(--text-muted);margin:0;">{{ lec.description|truncatewords:20 }}</p>
+      {% endif %}
+
+      <div style="font-size:.72rem;color:var(--text-muted);margin-top:.5rem;">
+        Added {{ lec.created_at|date:"d M Y" }}
+      </div>
+
+    </div>
+  </div>
+
+  {% empty %}
+  <div class="col-12">
+    <div class="card p-5 text-center">
+      <div style="font-size:3rem;margin-bottom:.75rem;">🎬</div>
+      <p style="color:var(--text-muted);">No lectures added yet.</p>
+      {% if request.user.is_admin %}
+        <a href="{% url 'create_lecture' %}" class="btn-pink justify-content-center">Add First Lecture</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

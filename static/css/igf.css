@@ -1,0 +1,583 @@
+/* IGF Sadhana Tracker – Main CSS */
+
+:root {
+  --pink-primary:   #F8BBD0;
+  --pink-dark:      #F06292;
+  --salmon:         #FFA07A;
+  --salmon-dark:    #FF7043;
+  --bg-white:       #FFFFFF;
+  --card-bg:        #FFF0F5;
+  --success:        #A5D6A7;
+  --success-dark:   #4CAF50;
+  --warning:        #FFE082;
+  --danger:         #EF9A9A;
+  --text-dark:      #3E2723;
+  --text-muted:     #8D6E63;
+  --border-color:   #F8BBD0;
+  --sidebar-width:  260px;
+  --sidebar-bg:     linear-gradient(180deg, #FCE4EC 0%, #FFF0F5 100%);
+}
+
+/* ── Base ──────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #FFF8FA;
+  color: var(--text-dark);
+  min-height: 100vh;
+}
+
+a { color: var(--pink-dark); text-decoration: none; }
+a:hover { color: var(--salmon-dark); }
+
+/* ── Layout ────────────────────────────────── */
+.app-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ───────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  border-right: 2px solid var(--pink-primary);
+  position: fixed;
+  top: 0; left: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transition: transform .3s ease;
+}
+
+.sidebar-brand {
+  padding: 1.5rem 1.25rem;
+  border-bottom: 1px solid var(--pink-primary);
+  text-align: center;
+}
+
+.sidebar-brand .brand-logo {
+  font-size: 2rem;
+}
+
+.sidebar-brand .brand-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--pink-dark);
+  display: block;
+}
+
+.sidebar-brand .brand-sub {
+  font-size: .75rem;
+  color: var(--text-muted);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 1rem 0;
+  list-style: none;
+}
+
+.sidebar-nav .nav-section {
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-muted);
+  padding: .75rem 1.25rem .25rem;
+  font-weight: 600;
+}
+
+.sidebar-nav a {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .65rem 1.25rem;
+  color: var(--text-dark);
+  font-size: .9rem;
+  font-weight: 500;
+  border-radius: 0 30px 30px 0;
+  margin-right: .75rem;
+  transition: background .2s, color .2s;
+}
+
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+  background: var(--pink-primary);
+  color: var(--pink-dark);
+}
+
+.sidebar-nav a .nav-icon {
+  font-size: 1.1rem;
+  width: 1.4rem;
+  text-align: center;
+}
+
+.sidebar-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--pink-primary);
+}
+
+/* ── Main Content ──────────────────────────── */
+.main-content {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.topbar {
+  background: #fff;
+  border-bottom: 2px solid var(--pink-primary);
+  padding: .75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0;
+  z-index: 100;
+}
+
+.topbar-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--pink-dark);
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.page-content {
+  padding: 1.5rem;
+  flex: 1;
+}
+
+/* ── Cards ─────────────────────────────────── */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--pink-primary);
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(240,98,146,.08);
+}
+
+.stat-card {
+  background: #fff;
+  border: 1.5px solid var(--pink-primary);
+  border-radius: 16px;
+  padding: 1.25rem;
+  text-align: center;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(240,98,146,.15);
+}
+
+.stat-card .stat-icon {
+  font-size: 2.2rem;
+  margin-bottom: .5rem;
+}
+
+.stat-card .stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--pink-dark);
+  line-height: 1;
+}
+
+.stat-card .stat-label {
+  font-size: .8rem;
+  color: var(--text-muted);
+  margin-top: .25rem;
+  font-weight: 500;
+}
+
+/* ── Sadhana Entry Card ─────────────────────── */
+.sadhana-card {
+  background: #fff;
+  border: 1.5px solid var(--pink-primary);
+  border-radius: 16px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.sadhana-card .s-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .75rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid var(--pink-primary);
+}
+
+.sadhana-card .s-name {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.sadhana-card .s-date {
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+
+.sadhana-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .75rem;
+}
+
+.sadhana-item {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: .5rem .75rem;
+}
+
+.sadhana-item .s-label {
+  font-size: .7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: .05em;
+}
+
+.sadhana-item .s-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+/* ── Badges ─────────────────────────────────── */
+.badge-complete  { background: var(--success);   color: #1B5E20; }
+.badge-partial   { background: var(--warning);   color: #4E342E; }
+.badge-minimal   { background: var(--danger);    color: #B71C1C; }
+.badge-role-admin   { background: #CE93D8; color: #4A148C; }
+.badge-role-mentor  { background: var(--pink-primary); color: #880E4F; }
+.badge-role-mentee  { background: #B3E5FC; color: #01579B; }
+
+.badge {
+  font-size: .72rem;
+  padding: .3em .7em;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+/* ── Calendar ───────────────────────────────── */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: .35rem;
+}
+
+.cal-day-header {
+  text-align: center;
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  padding: .3rem 0;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .15s;
+  border: 2px solid transparent;
+}
+
+.cal-day:hover { transform: scale(1.1); }
+.cal-day.today { border-color: var(--salmon); }
+.cal-day.complete { background: var(--success); color: #1B5E20; }
+.cal-day.partial  { background: var(--warning); color: #4E342E; }
+.cal-day.no-entry { background: #FFE0E6; color: #C62828; }
+.cal-day.empty    { opacity: 0; pointer-events: none; }
+.cal-day.future   { color: #ccc; cursor: default; }
+
+/* ── Form ────────────────────────────────────── */
+.form-card {
+  background: #fff;
+  border: 1.5px solid var(--pink-primary);
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.form-section-title {
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: .75rem;
+  margin-top: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.form-control, .form-select {
+  border: 1.5px solid var(--pink-primary);
+  border-radius: 10px;
+  padding: .6rem .9rem;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--pink-dark);
+  box-shadow: 0 0 0 3px rgba(240,98,146,.15);
+  outline: none;
+}
+
+/* ── Buttons ─────────────────────────────────── */
+.btn-pink {
+  background: linear-gradient(135deg, var(--pink-dark), var(--salmon));
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: .6rem 1.5rem;
+  font-weight: 600;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: opacity .2s, transform .15s;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.btn-pink:hover {
+  opacity: .9;
+  transform: translateY(-1px);
+  color: #fff;
+}
+
+.btn-outline-pink {
+  background: transparent;
+  color: var(--pink-dark);
+  border: 1.5px solid var(--pink-dark);
+  border-radius: 30px;
+  padding: .55rem 1.25rem;
+  font-weight: 600;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: all .2s;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.btn-outline-pink:hover {
+  background: var(--pink-primary);
+  color: var(--pink-dark);
+}
+
+/* ── FAB ─────────────────────────────────────── */
+.fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 56px; height: 56px;
+  background: linear-gradient(135deg, var(--pink-dark), var(--salmon));
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 16px rgba(240,98,146,.4);
+  cursor: pointer;
+  z-index: 500;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 24px rgba(240,98,146,.5);
+  color: #fff;
+}
+
+/* ── Streak / Progress ────────────────────────── */
+.streak-badge {
+  background: linear-gradient(135deg, #FF8A65, var(--salmon-dark));
+  color: #fff;
+  border-radius: 20px;
+  padding: .4rem 1rem;
+  font-weight: 700;
+  font-size: .9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+}
+
+.progress-ring {
+  width: 80px; height: 80px;
+  position: relative;
+}
+
+/* ── Hierarchy Tree ─────────────────────────── */
+.tree-mentor {
+  background: #fff;
+  border: 1.5px solid var(--pink-primary);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.tree-mentor-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--pink-dark);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.tree-mentees {
+  list-style: none;
+  padding-left: 1.5rem;
+  margin-top: .75rem;
+  border-left: 2px dashed var(--pink-primary);
+}
+
+.tree-mentees li {
+  padding: .3rem .75rem;
+  font-size: .9rem;
+  color: var(--text-dark);
+  position: relative;
+}
+
+.tree-mentees li::before {
+  content: '';
+  position: absolute;
+  left: -1.5px;
+  top: 50%;
+  width: .75rem;
+  height: 2px;
+  background: var(--pink-primary);
+}
+
+/* ── Notification dot ─────────────────────── */
+.notif-dot {
+  position: absolute;
+  top: -4px; right: -4px;
+  width: 16px; height: 16px;
+  background: var(--salmon-dark);
+  border-radius: 50%;
+  font-size: .6rem;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* ── Gita Quote Widget ─────────────────────── */
+.gita-widget {
+  background: linear-gradient(135deg, #FCE4EC, #FFF3E0);
+  border: 1.5px solid var(--pink-primary);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  text-align: center;
+}
+
+.gita-widget .gita-shloka {
+  font-style: italic;
+  color: var(--text-muted);
+  font-size: .9rem;
+  margin-bottom: .5rem;
+}
+
+.gita-widget .gita-chapter {
+  font-size: .75rem;
+  color: var(--salmon-dark);
+  font-weight: 600;
+}
+
+/* ── Toast / Alerts ─────────────────────────── */
+.alert {
+  border-radius: 12px;
+  border: none;
+  font-size: .9rem;
+}
+
+.alert-success { background: #E8F5E9; color: #1B5E20; }
+.alert-warning  { background: #FFF8E1; color: #E65100; }
+.alert-danger   { background: #FFEBEE; color: #B71C1C; }
+.alert-info     { background: #E1F5FE; color: #0277BD; }
+
+/* ── Table fallback (wide screens only) ─────── */
+@media (min-width: 992px) {
+  .wide-table { display: table; width: 100%; }
+  .card-table { display: none; }
+}
+
+@media (max-width: 991px) {
+  .wide-table { display: none; }
+  .card-table { display: block; }
+  .sadhana-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Mobile: Sidebar ────────────────────────── */
+@media (max-width: 767px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .main-content {
+    margin-left: 0;
+  }
+  .page-content {
+    padding: 1rem;
+  }
+  .form-card {
+    padding: 1.25rem;
+  }
+  .sadhana-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Overlay ────────────────────────────────── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.3);
+  z-index: 999;
+}
+
+.sidebar-overlay.show { display: block; }
+
+/* ── Login page ─────────────────────────────── */
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #FCE4EC 0%, #FFF0F5 50%, #FFF3E0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 16px 48px rgba(240,98,146,.15);
+}
+
+/* ── Scrollbar ──────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #FFF0F5; }
+::-webkit-scrollbar-thumb { background: var(--pink-primary); border-radius: 3px; }

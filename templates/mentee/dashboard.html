@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}My Dashboard – IGF{% endblock %}
+{% block page_title %}My Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon">🔥</div>
+      <div class="stat-value" style="color:#FF7043;">{{ streak }}</div>
+      <div class="stat-label">Day Streak</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon">📅</div>
+      <div class="stat-value">{{ monthly_pct }}%</div>
+      <div class="stat-label">Monthly Completion</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon">📿</div>
+      <div class="stat-value">{{ total_chanting }}</div>
+      <div class="stat-label">Total Entries</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon">🪔</div>
+      <div class="stat-value">{{ mangal_pct }}%</div>
+      <div class="stat-label">Mangal Arati %</div>
+    </div>
+  </div>
+</div>
+
+<!-- Today's entry -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-md-6">
+    {% if today_entry %}
+    <div class="sadhana-card">
+      <div class="s-header">
+        <div>
+          <div class="s-name">Today's Sadhana ✅</div>
+          <div class="s-date">{{ today_entry.date|date:"d M Y" }}</div>
+        </div>
+        <a href="{% url 'sadhana_form' %}" class="btn-outline-pink" style="font-size:.8rem;padding:.3rem .8rem;">
+          <i class="bi bi-pencil"></i> Edit
+        </a>
+      </div>
+      <div class="sadhana-grid">
+        <div class="sadhana-item">
+          <div class="s-label">Wake Up</div>
+          <div class="s-value">{{ today_entry.wake_up_time|time:"g:i A"|default:"—" }}</div>
+        </div>
+        <div class="sadhana-item">
+          <div class="s-label">Chanting</div>
+          <div class="s-value">{{ today_entry.chant_count }} rounds</div>
+        </div>
+        <div class="sadhana-item">
+          <div class="s-label">Mangal Arati</div>
+          <div class="s-value">{% if today_entry.mangal_arati %}✅{% else %}❌{% endif %}</div>
+        </div>
+        <div class="sadhana-item">
+          <div class="s-label">Reading</div>
+          <div class="s-value">{{ today_entry.read_minutes }} min</div>
+        </div>
+        <div class="sadhana-item">
+          <div class="s-label">Hearing</div>
+          <div class="s-value">{{ today_entry.hear_minutes }} min</div>
+        </div>
+        <div class="sadhana-item">
+          <div class="s-label">Service</div>
+          <div class="s-value" style="font-size:.82rem;">{{ today_entry.service|default:"—" }}</div>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="card p-4 text-center">
+      <div style="font-size:3rem;margin-bottom:.5rem;">📿</div>
+      <h5 style="color:var(--pink-dark);">Fill Today's Sadhana</h5>
+      <p style="color:var(--text-muted);font-size:.9rem;">You haven't submitted yet today.</p>
+      <a href="{% url 'sadhana_form' %}" class="btn-pink justify-content-center">
+        <i class="bi bi-journal-plus"></i> Submit Sadhana
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Gita Widget + Announcements -->
+  <div class="col-12 col-md-6">
+    <div class="gita-widget mb-3">
+      <div style="font-size:1.5rem;margin-bottom:.5rem;">📜</div>
+      <p class="gita-shloka">
+        "Let right deeds be thy motive, not the fruit which comes from them."
+      </p>
+      <span class="gita-chapter">Bhagavad Gita 2.47</span>
+    </div>
+
+    {% if announcements %}
+    <div class="card p-3">
+      <h6 class="fw-bold mb-2" style="color:var(--pink-dark);">📢 Latest Announcements</h6>
+      {% for ann in announcements %}
+      <div class="py-2" style="border-bottom:1px solid var(--pink-primary);">
+        <div class="fw-600" style="font-size:.9rem;">{{ ann.title }}</div>
+        <div style="font-size:.8rem;color:var(--text-muted);">{{ ann.created_at|date:"d M" }}</div>
+      </div>
+      {% endfor %}
+      <a href="{% url 'announcements' %}" class="btn-outline-pink mt-2 d-block text-center" style="font-size:.85rem;">View All</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- 30-day Trend Chart -->
+<div class="card p-3 mb-4">
+  <h6 class="fw-bold mb-3" style="color:var(--pink-dark);">📈 30-Day Reading & Hearing Trend</h6>
+  <canvas id="trendChart" height="80"></canvas>
+</div>
+
+<!-- FAB -->
+<a href="{% url 'sadhana_form' %}" class="fab" title="Submit Sadhana">
+  <i class="bi bi-journal-plus"></i>
+</a>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const labels  = {{ trend_labels|safe }};
+  const reading = {{ read_data|safe }};
+  const hearing = {{ hear_data|safe }};
+
+  new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Reading (min)',
+          data: reading,
+          borderColor: '#FFA07A',
+          backgroundColor: 'rgba(255,160,122,.12)',
+          fill: true,
+          tension: .4,
+        },
+        {
+          label: 'Hearing (min)',
+          data: hearing,
+          borderColor: '#F06292',
+          backgroundColor: 'rgba(240,98,146,.08)',
+          fill: true,
+          tension: .4,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Mentors – IGF{% endblock %}
+{% block page_title %}🌸 Mentors{% endblock %}
+
+{% block content %}
+
+<div class="d-flex gap-2 mb-4 flex-wrap align-items-center justify-content-between">
+  <form method="get" class="d-flex gap-2">
+    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search mentors…" style="max-width:260px;">
+    <button type="submit" class="btn-pink"><i class="bi bi-search"></i></button>
+  </form>
+  <a href="{% url 'send_invite' %}" class="btn-pink">
+    <i class="bi bi-person-plus"></i> Invite Mentor
+  </a>
+</div>
+
+<div class="row g-3">
+  {% for m in mentors %}
+  <div class="col-12 col-sm-6 col-lg-4">
+    <div class="card p-3">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="width:48px;height:48px;border-radius:50%;background:var(--pink-primary);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🌸</div>
+        <div class="flex-1">
+          <div class="fw-bold" style="font-size:.95rem;">{{ m.name }}</div>
+          <div style="font-size:.75rem;color:var(--text-muted);">{{ m.email }}</div>
+        </div>
+        {% if m.submitted_today %}
+          <span class="badge badge-complete" title="Submitted today">✅</span>
+        {% else %}
+          <span class="badge badge-minimal" title="Not submitted today">⏳</span>
+        {% endif %}
+      </div>
+
+      <div class="d-flex justify-content-between" style="font-size:.82rem;color:var(--text-muted);margin-bottom:.75rem;">
+        <span>📍 {{ m.city|default:"—" }}</span>
+        <span>💜 {{ m.mentee_count }} mentees</span>
+      </div>
+
+      <div class="d-flex gap-2">
+        <a href="{% url 'sadhana_calendar_user' m.id %}" class="btn-outline-pink flex-1 justify-content-center" style="font-size:.8rem;padding:.3rem;">
+          <i class="bi bi-calendar3"></i> Calendar
+        </a>
+        <a href="{% url 'mentee_list' %}?mentor={{ m.id }}" class="btn-outline-pink flex-1 justify-content-center" style="font-size:.8rem;padding:.3rem;">
+          <i class="bi bi-people"></i> Mentees
+        </a>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card p-5 text-center">
+      <div style="font-size:3rem;margin-bottom:.75rem;">🌸</div>
+      <p style="color:var(--text-muted);">No mentors found.</p>
+      <a href="{% url 'send_invite' %}" class="btn-pink justify-content-center">Invite First Mentor</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,213 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}IGF Sadhana Tracker{% endblock %}</title>
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'css/igf.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="app-wrapper">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar" id="sidebar">
+
+        <div class="sidebar-brand">
+            <span class="brand-logo">🌸</span>
+            <span class="brand-title">IGF Tracker</span>
+            <span class="brand-sub">ISKCON Girls Forum</span>
+        </div>
+
+        <ul class="sidebar-nav">
+
+            {% if user.is_admin %}
+                <li class="nav-section">Admin</li>
+
+                <li><a href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                <li><a href="{% url 'hierarchy' %}"><i class="bi bi-diagram-3"></i> Hierarchy</a></li>
+                <li><a href="{% url 'send_invite' %}"><i class="bi bi-envelope-plus"></i> Invite Mentors</a></li>
+                <li><a href="{% url 'mentor_list' %}"><i class="bi bi-people"></i> Mentors</a></li>
+                <li><a href="{% url 'mentee_list' %}"><i class="bi bi-person-heart"></i> Mentees</a></li>
+                <li><a href="{% url 'reports' %}"><i class="bi bi-bar-chart-line"></i> Reports</a></li>
+                <li><a href="{% url 'announcements' %}"><i class="bi bi-megaphone"></i> Announcements</a></li>
+                <li><a href="{% url 'lectures' %}"><i class="bi bi-play-circle"></i> Lectures</a></li>
+
+            {% elif user.is_mentor %}
+
+                <li class="nav-section">Mentor</li>
+
+                <li><a href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                <li><a href="{% url 'sadhana_form' %}"><i class="bi bi-journal-check"></i> My Sadhana</a></li>
+                <li><a href="{% url 'sadhana_calendar' %}"><i class="bi bi-calendar3"></i> Calendar</a></li>
+                <li><a href="{% url 'mentee_list' %}"><i class="bi bi-person-heart"></i> My Mentees</a></li>
+                <li><a href="{% url 'send_invite' %}"><i class="bi bi-person-plus"></i> Invite Mentee</a></li>
+                <li><a href="{% url 'reports' %}"><i class="bi bi-bar-chart-line"></i> Reports</a></li>
+                <li><a href="{% url 'announcements' %}"><i class="bi bi-megaphone"></i> Announcements</a></li>
+                <li><a href="{% url 'lectures' %}"><i class="bi bi-play-circle"></i> Lectures</a></li>
+
+            {% else %}
+
+                <li class="nav-section">Mentee</li>
+
+                <li><a href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                <li><a href="{% url 'sadhana_form' %}"><i class="bi bi-journal-check"></i> Sadhana Form</a></li>
+                <li><a href="{% url 'sadhana_calendar' %}"><i class="bi bi-calendar3"></i> My Progress</a></li>
+                <li><a href="{% url 'announcements' %}"><i class="bi bi-megaphone"></i> Announcements</a></li>
+                <li><a href="{% url 'lectures' %}"><i class="bi bi-play-circle"></i> Lectures</a></li>
+
+            {% endif %}
+
+            <li class="nav-section">Account</li>
+
+            <li>
+                <a href="{% url 'profile' %}">
+                    <i class="bi bi-person-circle"></i> Profile
+                </a>
+            </li>
+
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="{% url 'logout' %}" class="btn btn-outline-danger w-100">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </a>
+        </div>
+
+    </aside>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <div class="main-content">
+
+        <!-- Topbar -->
+        <header class="topbar">
+
+            <div class="d-flex align-items-center gap-3">
+
+                <button
+                    class="btn btn-sm d-md-none"
+                    id="menuToggle">
+                    <i class="bi bi-list"></i>
+                </button>
+
+                <span class="topbar-title">
+                    {% block page_title %}
+                        IGF Sadhana Tracker
+                    {% endblock %}
+                </span>
+
+            </div>
+
+            <div class="topbar-actions">
+
+                <button class="btn btn-sm position-relative">
+                    <i class="bi bi-bell"></i>
+
+                    {% if unread_count %}
+                        <span class="notif-dot">
+                            {{ unread_count }}
+                        </span>
+                    {% endif %}
+                </button>
+
+                <div class="dropdown">
+
+                    <button
+                        class="btn btn-light dropdown-toggle"
+                        data-bs-toggle="dropdown">
+
+                        {% if user.profile_picture %}
+                            <img
+                                src="{{ user.profile_picture.url }}"
+                                width="28"
+                                height="28"
+                                class="rounded-circle">
+                        {% else %}
+                            🌸
+                        {% endif %}
+
+                        {{ user.name }}
+
+                    </button>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item"
+                               href="{% url 'profile' %}">
+                                Profile
+                            </a>
+                        </li>
+
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li>
+                            <a class="dropdown-item text-danger"
+                               href="{% url 'logout' %}">
+                                Logout
+                            </a>
+                        </li>
+                    </ul>
+
+                </div>
+
+            </div>
+
+        </header>
+
+{% endif %}
+
+<!-- ================= MESSAGES ================= -->
+
+{% if messages %}
+<div class="container-fluid mt-2">
+    {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show">
+        {{ msg }}
+        <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert">
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ================= PAGE CONTENT ================= -->
+
+<div class="container-fluid py-3">
+
+    {% block content %}
+    {% endblock %}
+
+</div>
+
+{% if user.is_authenticated %}
+    </div>
+</div>
+{% endif %}
+
+<!-- JS -->
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
+<script src="{% static 'js/igf.js' %}"></script>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

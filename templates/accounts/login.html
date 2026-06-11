@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Login – IGF Sadhana Tracker{% endblock %}
+
+{% block content %}
+<div class="login-page">
+  <div class="login-card">
+    <div class="text-center mb-4">
+      <div style="font-size:3rem;">🌸</div>
+      <h1 style="font-size:1.6rem;font-weight:700;color:var(--pink-dark);">IGF Sadhana Tracker</h1>
+      <p style="color:var(--text-muted);font-size:.85rem;">ISKCON Girls Forum · Hare Krishna 🙏</p>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label fw-600" style="font-size:.85rem;">Email</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+          <div class="text-danger" style="font-size:.8rem;">{{ form.username.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="mb-4">
+        <label class="form-label fw-600" style="font-size:.85rem;">Password</label>
+        {{ form.password }}
+        {% if form.password.errors %}
+          <div class="text-danger" style="font-size:.8rem;">{{ form.password.errors.0 }}</div>
+        {% endif %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger mt-2 py-2" style="font-size:.85rem;">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+      </div>
+      <button type="submit" class="btn-pink w-100 justify-content-center" style="font-size:1rem;padding:.8rem;">
+        <i class="bi bi-box-arrow-in-right"></i> Sign In
+      </button>
+    </form>
+
+    <p class="text-center mt-3" style="font-size:.8rem;color:var(--text-muted);">
+      Don't have an account? Ask your mentor for an invite link.
+    </p>
+
+    <div class="gita-widget mt-4">
+      <p class="gita-shloka">"Yoga is the journey of the self, through the self, to the self."</p>
+      <span class="gita-chapter">Bhagavad Gita 6.20</span>
+    </div>
+  </div>
+</div>
+{% endblock %}

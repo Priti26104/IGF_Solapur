@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Mentor Dashboard – IGF{% endblock %}
+{% block page_title %}Mentor Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon">💜</div>
+      <div class="stat-value">{{ mentees_count }}</div>
+      <div class="stat-label">My Mentees</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-value">{{ submitted_today }}</div>
+      <div class="stat-label">Submitted Today</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="color:#EF5350;">⏳</div>
+      <div class="stat-value" style="color:#EF5350;">{{ pending }}</div>
+      <div class="stat-label">Pending Today</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon">📿</div>
+      <div class="stat-value">{{ avg_chant }}</div>
+      <div class="stat-label">Avg Rounds (Today)</div>
+    </div>
+  </div>
+</div>
+
+<!-- My Sadhana Today -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-md-5">
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="fw-bold mb-0" style="color:var(--pink-dark);">📿 My Sadhana Today</h6>
+        {% if streak > 0 %}
+          <span class="streak-badge">🔥 {{ streak }} day streak</span>
+        {% endif %}
+      </div>
+      {% if today_entry %}
+        <div class="sadhana-grid mt-2">
+          <div class="sadhana-item">
+            <div class="s-label">Wake Up</div>
+            <div class="s-value">{{ today_entry.wake_up_time|time:"g:i A"|default:"—" }}</div>
+          </div>
+          <div class="sadhana-item">
+            <div class="s-label">Chanting</div>
+            <div class="s-value">{{ today_entry.chant_count }} rounds</div>
+          </div>
+          <div class="sadhana-item">
+            <div class="s-label">Mangal Arati</div>
+            <div class="s-value">{% if today_entry.mangal_arati %}✅{% else %}❌{% endif %}</div>
+          </div>
+          <div class="sadhana-item">
+            <div class="s-label">Reading</div>
+            <div class="s-value">{{ today_entry.read_minutes }} min</div>
+          </div>
+          <div class="sadhana-item">
+            <div class="s-label">Hearing</div>
+            <div class="s-value">{{ today_entry.hear_minutes }} min</div>
+          </div>
+          <div class="sadhana-item">
+            <div class="s-label">Service</div>
+            <div class="s-value" style="font-size:.85rem;">{{ today_entry.service|default:"—" }}</div>
+          </div>
+        </div>
+        <a href="{% url 'sadhana_form' %}" class="btn-outline-pink mt-3 d-block text-center">
+          <i class="bi bi-pencil"></i> Edit Today's Entry
+        </a>
+      {% else %}
+        <div class="text-center py-3">
+          <p style="color:var(--text-muted);font-size:.9rem;">You haven't submitted today's sadhana yet.</p>
+          <a href="{% url 'sadhana_form' %}" class="btn-pink"><i class="bi bi-journal-plus"></i> Submit Now</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-12 col-md-7">
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0" style="color:var(--pink-dark);">💜 My Mentees – Today</h6>
+        <a href="{% url 'mentee_list' %}" class="btn-outline-pink" style="font-size:.8rem;padding:.3rem .8rem;">View All</a>
+      </div>
+      {% for m in mentees %}
+      <div class="d-flex align-items-center gap-3 py-2" style="border-bottom:1px solid var(--pink-primary);">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--pink-primary);display:flex;align-items:center;justify-content:center;">🌸</div>
+        <div class="flex-1">
+          <div class="fw-600" style="font-size:.9rem;">{{ m.name }}</div>
+          <div style="font-size:.75rem;color:var(--text-muted);">{{ m.city }}</div>
+        </div>
+        {% if m.submitted_today %}
+          <span class="badge badge-complete">✅ Submitted</span>
+        {% else %}
+          <span class="badge badge-minimal">⏳ Pending</span>
+        {% endif %}
+        <a href="{% url 'sadhana_calendar_user' m.id %}" style="color:var(--text-muted);"><i class="bi bi-calendar3"></i></a>
+      </div>
+      {% empty %}
+        <p style="color:var(--text-muted);font-size:.9rem;">No mentees yet. <a href="{% url 'send_invite' %}">Invite one!</a></p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Notifications -->
+{% if notifications %}
+<div class="card p-3 mb-3">
+  <h6 class="fw-bold mb-3" style="color:var(--pink-dark);">🔔 Notifications</h6>
+  {% for n in notifications %}
+    <div class="alert alert-{{ n.notif_type }} py-2 mb-2" style="font-size:.85rem;">
+      {{ n.message }}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- FAB -->
+<a href="{% url 'sadhana_form' %}" class="fab" title="Add Sadhana">
+  <i class="bi bi-journal-plus"></i>
+</a>
+
+{% endblock %}

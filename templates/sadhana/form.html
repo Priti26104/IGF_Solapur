@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Daily Sadhana – IGF{% endblock %}
+{% block page_title %}{% if existing %}Edit{% else %}Submit{% endif %} Daily Sadhana{% endblock %}
+
+{% block content %}
+<div class="form-card">
+  <div class="text-center mb-4">
+    <div style="font-size:2.5rem;">📿</div>
+    <h2 style="font-size:1.3rem;font-weight:700;color:var(--pink-dark);">
+      {% if existing %}Update{% else %}Today's{% endif %} Sadhana Entry
+    </h2>
+    <p style="color:var(--text-muted);font-size:.85rem;">Hare Krishna! Fill your sadhana details 🙏</p>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <!-- Date -->
+    <div class="form-section-title"><i class="bi bi-calendar3"></i> Date</div>
+    <div class="mb-3">
+      {{ form.date }}
+      {% if form.date.errors %}<div class="text-danger" style="font-size:.8rem;">{{ form.date.errors.0 }}</div>{% endif %}
+    </div>
+
+    <!-- Sleep & Wake -->
+    <div class="form-section-title"><i class="bi bi-moon-stars"></i> Sleep & Wake</div>
+    <div class="row g-2 mb-3">
+      <div class="col-6">
+        <label class="form-label" style="font-size:.8rem;">Sleep Time (last night)</label>
+        {{ form.sleep_time }}
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:.8rem;">Wake Up Time</label>
+        {{ form.wake_up_time }}
+      </div>
+    </div>
+
+    <!-- Chanting -->
+    <div class="form-section-title"><i class="bi bi-music-note-list"></i> Chanting</div>
+    <div class="mb-3">
+      <label class="form-label" style="font-size:.8rem;">Chanting Rounds</label>
+      <div class="d-flex align-items-center gap-2">
+        <button type="button" id="chantMinus" class="btn-outline-pink" style="width:38px;height:38px;border-radius:50%;padding:0;justify-content:center;">−</button>
+        {{ form.chant_count }}
+        <button type="button" id="chantPlus" class="btn-pink" style="width:38px;height:38px;border-radius:50%;padding:0;justify-content:center;">+</button>
+      </div>
+      {% if form.chant_count.errors %}<div class="text-danger" style="font-size:.8rem;">{{ form.chant_count.errors.0 }}</div>{% endif %}
+    </div>
+
+    <!-- Mangal Arati -->
+    <div class="mb-3">
+      <div class="d-flex align-items-center gap-3 p-3" style="background:var(--card-bg);border-radius:12px;border:1.5px solid var(--pink-primary);">
+        <div class="form-check form-switch mb-0">
+          {{ form.mangal_arati }}
+        </div>
+        <div>
+          <div class="fw-600" style="font-size:.9rem;">🪔 Mangal Arati</div>
+          <div id="maLabel" style="font-size:.8rem;color:var(--text-muted);">❌ Not attended</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Study -->
+    <div class="form-section-title"><i class="bi bi-book"></i> Study</div>
+    <div class="row g-2 mb-3">
+      <div class="col-6">
+        <label class="form-label" style="font-size:.8rem;">Hearing & Thinking (min)</label>
+        {{ form.hear_minutes }}
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:.8rem;">Reading & Thinking (min)</label>
+        {{ form.read_minutes }}
+      </div>
+    </div>
+
+    <!-- Service -->
+    <div class="form-section-title"><i class="bi bi-heart"></i> Service & Rest</div>
+    <div class="mb-3">
+      <label class="form-label" style="font-size:.8rem;">Service / Seva</label>
+      {{ form.service }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label" style="font-size:.8rem;">Rest / Nap (min)</label>
+      {{ form.day_rest_minutes }}
+    </div>
+
+    <!-- Notes -->
+    <div class="form-section-title"><i class="bi bi-sticky"></i> Notes</div>
+    <div class="mb-4">
+      {{ form.notes }}
+    </div>
+
+    <button type="submit" class="btn-pink w-100 justify-content-center" style="font-size:1rem;padding:.85rem;">
+      <i class="bi bi-check-circle"></i>
+      {% if existing %}Update Sadhana{% else %}Submit Sadhana{% endif %}
+    </button>
+  </form>
+
+  <div class="text-center mt-3">
+    <a href="{% url 'sadhana_calendar' %}" class="btn-outline-pink" style="font-size:.85rem;">
+      <i class="bi bi-calendar3"></i> View Calendar
+    </a>
+  </div>
+</div>
+{% endblock %}
