@@ -10,7 +10,7 @@ class Command(BaseCommand):
         self.stdout.write('🌸 Creating Admin User...')
 
         admin, created = User.objects.get_or_create(
-            email='vrajvadhudevidasi@gmail.com',
+            email='madasvrajavadhu@gmail.com',
             defaults={
                 'name': 'Vrajvadhu Devi Dasi',
                 'role': 'admin',
@@ -26,7 +26,7 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 '✅ Admin created successfully!\n'
-                'Email: vrajvadhudevidasi@gmail.com\n'
+                'Email: madasvrajavadhu@gmail.com\n'
                 'Password: igfadmin123'
             )
         )
