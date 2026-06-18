@@ -213,7 +213,7 @@ def sadhana_form(request):
         entry = form.save(commit=False)
         entry.user = request.user
         entry.save()
-        messages.success(request, 'Sadhana submitted! Jai Radhe! 🌸')
+        messages.success(request, 'Sadhana submitted! Hare Krishna! 🌸')
         return redirect('dashboard')
     return render(request, 'sadhana/form.html', {
         'form': form, 'existing': existing

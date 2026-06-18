@@ -29,10 +29,14 @@
           <div class="alert alert-danger mt-2 py-2" style="font-size:.85rem;">{{ form.non_field_errors.0 }}</div>
         {% endif %}
       </div>
+   
       <button type="submit" class="btn-pink w-100 justify-content-center" style="font-size:1rem;padding:.8rem;">
         <i class="bi bi-box-arrow-in-right"></i> Sign In
       </button>
     </form>
+       <p class="text-end mb-3" style="font-size:.8rem;">
+  <a href="{% url 'password_reset' %}">Forgot Password?</a>
+</p>
 
     <p class="text-center mt-3" style="font-size:.8rem;color:var(--text-muted);">
       Don't have an account? Ask your mentor for an invite link.
