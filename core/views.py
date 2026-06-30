@@ -7,7 +7,8 @@ import io
 import json
 from datetime import date, timedelta
 from calendar import monthrange
-
+from django.db import models
+from django.db.models import Avg, Count, Q, Sum
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -17,7 +18,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.conf import settings
-
+from django.db.models import Avg, Count, Q, Sum
 from .models import User, InviteToken, SadhanaEntry, Announcement, Lecture, Notification
 from .forms import (
     LoginForm, RegisterForm, InviteForm,
@@ -91,24 +92,71 @@ def dashboard(request):
         return mentee_dashboard(request)
 
 
+@login_required
 def admin_dashboard(request):
     today = timezone.localdate()
+    year, month = today.year, today.month
+    q = request.GET.get('q', '').strip()
+
+    # ── Core stats ──────────────────────────────
     total_devotees = User.objects.filter(is_active=True).count()
     total_mentors  = User.objects.filter(role='mentor', is_active=True).count()
     total_mentees  = User.objects.filter(role='mentee', is_active=True).count()
     today_entries  = SadhanaEntry.objects.filter(date=today).count()
-    pending        = total_mentees - SadhanaEntry.objects.filter(date=today, user__role='mentee').count()
     avg_chanting   = SadhanaEntry.objects.filter(date=today).aggregate(a=Avg('chant_count'))['a'] or 0
 
-    # 7-day trend
-    trend_labels, trend_data = [], []
-    for i in range(6, -1, -1):
-        d = today - timedelta(days=i)
-        cnt = SadhanaEntry.objects.filter(date=d).count()
-        trend_labels.append(d.strftime('%b %d'))
-        trend_data.append(cnt)
+    # ── Devotees + mini calendar (mentees first, then mentors) ──────────────
+    devotees_qs = User.objects.filter(is_active=True).exclude(role='admin').order_by('role', 'name')
+    if q:
+        devotees_qs = devotees_qs.filter(Q(name__icontains=q) | Q(city__icontains=q))
 
-    # Recent registrations
+    month_entries = SadhanaEntry.objects.filter(date__year=year, date__month=month).select_related('user')
+    entries_by_user = {}
+    for e in month_entries:
+        entries_by_user.setdefault(e.user_id, {})[e.date] = e.completion_label
+
+    days_in_month = monthrange(year, month)[1]
+    month_days = [date(year, month, d) for d in range(1, days_in_month + 1)]
+
+    devotees = []
+    for u in devotees_qs:
+        u_entries = entries_by_user.get(u.id, {})
+        devotees.append({
+            'user': u,
+            'entries': u_entries,
+            'submitted_today': today in u_entries,
+        })
+
+    # ── Who hasn't filled today (for admin follow-up) ──────────────────────
+    all_active_non_admin = User.objects.filter(is_active=True).exclude(role='admin')
+    submitted_today_ids = set(
+        SadhanaEntry.objects.filter(date=today).values_list('user_id', flat=True)
+    )
+    missing_today = all_active_non_admin.exclude(id__in=submitted_today_ids).order_by('role', 'name')
+    pending = missing_today.count()
+
+    # ── Today completion pie chart ──────────────────────────────
+    today_qs = SadhanaEntry.objects.filter(date=today)
+    pie_complete = sum(1 for e in today_qs if e.completion_label == 'complete')
+    pie_partial  = sum(1 for e in today_qs if e.completion_label == 'partial')
+    pie_minimal  = sum(1 for e in today_qs if e.completion_label == 'minimal')
+
+    # ── Leaderboard (current month totals) ──────────────────────────────
+    leaderboard_qs = list(
+        SadhanaEntry.objects.filter(date__year=year, date__month=month)
+        .values('user__id', 'user__name', 'user__role')
+        .annotate(
+            total_rounds=Sum('chant_count'),
+            total_hear=Sum('hear_minutes'),
+            total_read=Sum('read_minutes'),
+            mangal_count=Count('id', filter=Q(mangal_arati=True)),
+        )
+    )
+    top_chanting = sorted(leaderboard_qs, key=lambda x: x['total_rounds'] or 0, reverse=True)[:5]
+    top_hearing  = sorted(leaderboard_qs, key=lambda x: x['total_hear'] or 0, reverse=True)[:5]
+    top_reading  = sorted(leaderboard_qs, key=lambda x: x['total_read'] or 0, reverse=True)[:5]
+    top_mangal   = sorted(leaderboard_qs, key=lambda x: x['mangal_count'] or 0, reverse=True)[:5]
+
     recent_users = User.objects.order_by('-created_at')[:5]
     notifications = request.user.notifications.filter(is_read=False)[:5]
 
@@ -119,11 +167,21 @@ def admin_dashboard(request):
         'today_entries': today_entries,
         'pending': pending,
         'avg_chanting': round(avg_chanting, 1),
-        'trend_labels': json.dumps(trend_labels),
-        'trend_data':   json.dumps(trend_data),
+        'pie_labels': json.dumps(['Complete', 'Partial', 'Minimal']),
+        'pie_data': json.dumps([pie_complete, pie_partial, pie_minimal]),
         'recent_users': recent_users,
         'notifications': notifications,
         'unread_count': notifications.count(),
+        'devotees': devotees,
+        'month_days': month_days,
+        'month_name': today.strftime('%B %Y'),
+        'today': today,
+        'missing_today': missing_today,
+        'q': q,
+        'top_chanting': top_chanting,
+        'top_hearing': top_hearing,
+        'top_reading': top_reading,
+        'top_mangal': top_mangal,
     }
     return render(request, 'admin_panel/dashboard.html', ctx)
 
@@ -201,6 +259,91 @@ def mentee_dashboard(request):
 # ══════════════════════════════════════════════
 
 @login_required
+def sadhana_calendar(request, user_id=None):
+    if user_id:
+        target = get_object_or_404(User, pk=user_id)
+        if not (request.user.is_admin or
+                (request.user.is_mentor and target.mentor == request.user) or
+                request.user == target):
+            messages.error(request, 'Access denied.')
+            return redirect('dashboard')
+    else:
+        target = request.user
+
+    today = timezone.localdate()
+    year  = int(request.GET.get('year',  today.year))
+    month = int(request.GET.get('month', today.month))
+
+    month_qs = target.sadhana_entries.filter(date__year=year, date__month=month)
+
+    entries = {e.date: e.completion_label for e in month_qs}
+
+    # ── Monthly summary card ──
+    monthly_totals = month_qs.aggregate(
+        total_rounds= models.Sum('chant_count'),
+        total_hear= models.Sum('hear_minutes'),
+        total_read= models.Sum('read_minutes'),
+    )
+    monthly_summary = {
+        'rounds': monthly_totals['total_rounds'] or 0,
+        'hear_minutes': monthly_totals['total_hear'] or 0,
+        'read_minutes': monthly_totals['total_read'] or 0,
+        'days_filled': month_qs.count(),
+    }
+
+    # Build calendar grid
+    first_day = date(year, month, 1)
+    days_count = monthrange(year, month)[1]
+    start_pad = first_day.weekday()  # Mon=0
+    cal_days = [None] * start_pad + [date(year, month, d) for d in range(1, days_count + 1)]
+
+    # ── Weekly breakdown ──
+    # Group cal_days into week rows (chunks of 7, including leading/trailing None)
+    full_grid = cal_days + [None] * ((7 - len(cal_days) % 7) % 7)
+    week_rows = [full_grid[i:i+7] for i in range(0, len(full_grid), 7)]
+
+    entry_lookup = {e.date: e for e in month_qs}
+    weekly_summary = []
+    for idx, week in enumerate(week_rows, start=1):
+        week_dates = [d for d in week if d is not None]
+        if not week_dates:
+            continue
+        rounds = hear = read = filled = 0
+        for d in week_dates:
+            e = entry_lookup.get(d)
+            if e:
+                rounds += e.chant_count
+                hear   += e.hear_minutes
+                read   += e.read_minutes
+                filled += 1
+        weekly_summary.append({
+            'week_no': idx,
+            'start': week_dates[0],
+            'end': week_dates[-1],
+            'rounds': rounds,
+            'hear_minutes': hear,
+            'read_minutes': read,
+            'days_filled': filled,
+            'days_total': len(week_dates),
+        })
+
+    prev_month = (first_day - timedelta(days=1)).replace(day=1)
+    next_month_d = date(year, month, days_count) + timedelta(days=1)
+
+    ctx = {
+        'target': target,
+        'year': year, 'month': month,
+        'month_name': first_day.strftime('%B %Y'),
+        'cal_days': cal_days,
+        'entries': entries,
+        'today': today,
+        'prev_year': prev_month.year, 'prev_month': prev_month.month,
+        'next_year': next_month_d.year, 'next_month': next_month_d.month,
+        'monthly_summary': monthly_summary,
+        'weekly_summary': weekly_summary,
+    }
+    return render(request, 'sadhana/calendar.html', ctx)
+@login_required
 def sadhana_form(request):
     today = timezone.localdate()
     existing = SadhanaEntry.objects.filter(user=request.user, date=today).first()
@@ -218,52 +361,6 @@ def sadhana_form(request):
     return render(request, 'sadhana/form.html', {
         'form': form, 'existing': existing
     })
-
-
-@login_required
-def sadhana_calendar(request, user_id=None):
-    if user_id:
-        target = get_object_or_404(User, pk=user_id)
-        # permission check
-        if not (request.user.is_admin or
-                (request.user.is_mentor and target.mentor == request.user) or
-                request.user == target):
-            messages.error(request, 'Access denied.')
-            return redirect('dashboard')
-    else:
-        target = request.user
-
-    today = timezone.localdate()
-    year  = int(request.GET.get('year',  today.year))
-    month = int(request.GET.get('month', today.month))
-
-    entries = {
-        e.date: e.completion_label
-        for e in target.sadhana_entries.filter(date__year=year, date__month=month)
-    }
-
-    # Build calendar grid
-    first_day = date(year, month, 1)
-    days_count = monthrange(year, month)[1]
-    # pad start
-    start_pad = first_day.weekday()  # Mon=0
-    cal_days = [None] * start_pad + [date(year, month, d) for d in range(1, days_count + 1)]
-
-    prev_month = (first_day - timedelta(days=1)).replace(day=1)
-    next_month_d = date(year, month, days_count) + timedelta(days=1)
-
-    ctx = {
-        'target': target,
-        'year': year, 'month': month,
-        'month_name': first_day.strftime('%B %Y'),
-        'cal_days': cal_days,
-        'entries': entries,
-        'today': today,
-        'prev_year': prev_month.year, 'prev_month': prev_month.month,
-        'next_year': next_month_d.year, 'next_month': next_month_d.month,
-    }
-    return render(request, 'sadhana/calendar.html', ctx)
-
 
 @login_required
 def sadhana_detail(request, user_id, entry_date):

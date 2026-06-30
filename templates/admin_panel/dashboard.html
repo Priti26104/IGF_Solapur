@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load igf_tags %}
 {% block title %}Admin Dashboard – IGF{% endblock %}
 {% block page_title %}Admin Dashboard{% endblock %}
 
@@ -50,35 +51,150 @@
   </div>
 </div>
 
-<!-- Charts Row -->
+<!-- Pie Chart + Missing Today -->
 <div class="row g-3 mb-4">
-  <div class="col-12 col-lg-8">
+  <div class="col-12 col-lg-5">
     <div class="card p-3 h-100">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="mb-0 fw-bold" style="color:var(--pink-dark);">📊 Sadhana Trends</h6>
-        <select id="analyticsDays" class="form-select form-select-sm" style="width:auto;">
-          <option value="7">Last 7 days</option>
-          <option value="30" selected>Last 30 days</option>
-          <option value="60">Last 60 days</option>
-        </select>
-      </div>
-      <canvas id="chantChart" height="120"></canvas>
+      <h6 class="fw-bold mb-3" style="color:var(--pink-dark);"><i class="bi bi-pie-chart"></i> Today's Completion Status</h6>
+      <canvas id="todayPieChart" height="200"></canvas>
     </div>
   </div>
-  <div class="col-12 col-lg-4">
+
+  <div class="col-12 col-lg-7">
     <div class="card p-3 h-100">
-      <h6 class="mb-3 fw-bold" style="color:var(--pink-dark);">📅 Daily Submissions</h6>
-      <canvas id="submissionsChart" height="160"></canvas>
+      <h6 class="fw-bold mb-3" style="color:#EF5350;"><i class="bi bi-exclamation-circle"></i> Not Filled Today ({{ missing_today|length }})</h6>
+      {% if missing_today %}
+        <div style="max-height:260px;overflow-y:auto;">
+          {% for u in missing_today %}
+          <div class="d-flex align-items-center justify-content-between py-2" style="border-bottom:1px solid #f3e0e8;">
+            <div class="d-flex align-items-center gap-2">
+              <div style="width:32px;height:32px;border-radius:50%;background:#FFEBEE;display:flex;align-items:center;justify-content:center;font-size:.9rem;">🌸</div>
+              <div>
+                <div class="fw-600" style="font-size:.88rem;">{{ u.name }}</div>
+                <div style="font-size:.72rem;color:var(--text-muted);">{{ u.get_role_display }} &middot; {{ u.city|default:"—" }}</div>
+              </div>
+            </div>
+            {% if u.mobile %}
+            <a href="tel:{{ u.mobile }}" class="btn-outline-pink" style="padding:.25rem .6rem;font-size:.75rem;">
+              <i class="bi bi-telephone"></i>
+            </a>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p style="color:var(--text-muted);font-size:.85rem;">🎉 Everyone has filled their Sadhana today!</p>
+      {% endif %}
     </div>
   </div>
 </div>
 
-<div class="row g-3 mb-4">
-  <div class="col-12">
-    <div class="card p-3">
-      <h6 class="mb-3 fw-bold" style="color:var(--pink-dark);">📖 Reading & Hearing Trends</h6>
-      <canvas id="readHearChart" height="80" id="analyticsChart"></canvas>
+<!-- Leaderboard -->
+<div class="card p-3 mb-4 leaderboard-card">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h6 class="fw-bold mb-0" style="color:var(--pink-dark);"><i class="bi bi-trophy-fill"></i> Leaderboard – {{ month_name }}</h6>
+    <span class="lb-month-badge">{{ month_name }}</span>
+  </div>
+  <div class="row g-3">
+
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="leaderboard-block lb-chanting">
+        <div class="lb-title"><i class="bi bi-arrow-repeat"></i> Top Chanting</div>
+        {% for row in top_chanting %}
+        <div class="lb-row lb-rank-{{ forloop.counter }}">
+          <span class="lb-rank">{% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}</span>
+          <span class="lb-name">{{ row.user__name }}</span>
+          <span class="lb-value">{{ row.total_rounds|default:0 }}</span>
+        </div>
+        {% empty %}<p class="lb-empty">No data yet</p>{% endfor %}
+      </div>
     </div>
+
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="leaderboard-block lb-hearing">
+        <div class="lb-title"><i class="bi bi-headphones"></i> Top Hearing</div>
+        {% for row in top_hearing %}
+        <div class="lb-row lb-rank-{{ forloop.counter }}">
+          <span class="lb-rank">{% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}</span>
+          <span class="lb-name">{{ row.user__name }}</span>
+          <span class="lb-value">{{ row.total_hear|default:0 }}m</span>
+        </div>
+        {% empty %}<p class="lb-empty">No data yet</p>{% endfor %}
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="leaderboard-block lb-reading">
+        <div class="lb-title"><i class="bi bi-book"></i> Top Reading</div>
+        {% for row in top_reading %}
+        <div class="lb-row lb-rank-{{ forloop.counter }}">
+          <span class="lb-rank">{% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}</span>
+          <span class="lb-name">{{ row.user__name }}</span>
+          <span class="lb-value">{{ row.total_read|default:0 }}m</span>
+        </div>
+        {% empty %}<p class="lb-empty">No data yet</p>{% endfor %}
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="leaderboard-block lb-mangal">
+        <div class="lb-title"><i class="bi bi-sunrise"></i> Most Mangal Arati</div>
+        {% for row in top_mangal %}
+        <div class="lb-row lb-rank-{{ forloop.counter }}">
+          <span class="lb-rank">{% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}</span>
+          <span class="lb-name">{{ row.user__name }}</span>
+          <span class="lb-value">{{ row.mangal_count|default:0 }}</span>
+        </div>
+        {% empty %}<p class="lb-empty">No data yet</p>{% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Search -->
+<div class="card p-3 mb-3">
+  <form method="get" class="d-flex gap-2">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search devotee by name or city..."
+           class="form-control" style="border-radius:10px;">
+    <button type="submit" class="btn-pink" style="padding:.5rem 1.2rem;"><i class="bi bi-search"></i> Search</button>
+    {% if q %}<a href="{% url 'dashboard' %}" class="btn-outline-pink" style="padding:.5rem .9rem;">✕</a>{% endif %}
+  </form>
+</div>
+
+<!-- Mini Calendars Grid (mentees first, then mentors) -->
+<div class="card p-3 mb-4">
+  <h6 class="fw-bold mb-3" style="color:var(--pink-dark);"><i class="bi bi-calendar3"></i> {{ month_name }} – Devotee Calendars</h6>
+  <div class="row g-3">
+    {% for d in devotees %}
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="mini-cal-card">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div>
+            <div class="fw-600" style="font-size:.88rem;">{{ d.user.name }}</div>
+            <div style="font-size:.7rem;color:var(--text-muted);">{{ d.user.get_role_display }}</div>
+          </div>
+          <span class="badge {% if d.submitted_today %}badge-complete{% else %}badge-no-entry{% endif %}" style="font-size:.68rem;">
+            {% if d.submitted_today %}Today ✓{% else %}Pending{% endif %}
+          </span>
+        </div>
+        <div class="mini-cal-grid">
+          {% for day in month_days %}
+            <a href="{% url 'sadhana_calendar_user' d.user.id %}"
+               class="mini-cal-day {% if day in d.entries %}{{ d.entries|get_item:day }}{% elif day < today %}no-entry{% endif %} {% if day == today %}today{% endif %}"
+               title="{{ day|date:'d M' }}">
+              {{ day.day }}
+            </a>
+          {% endfor %}
+        </div>
+        <a href="{% url 'sadhana_calendar_user' d.user.id %}" class="d-block text-center mt-2" style="font-size:.75rem;color:var(--pink-dark);">
+          View Full Calendar →
+        </a>
+      </div>
+    </div>
+    {% empty %}
+    <p style="color:var(--text-muted);">No devotees found.</p>
+    {% endfor %}
   </div>
 </div>
 
@@ -136,12 +252,151 @@
 
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.leaderboard-card { overflow: hidden; }
+
+.lb-month-badge {
+  background: var(--pink-primary);
+  color: var(--pink-dark);
+  font-size: .7rem;
+  font-weight: 700;
+  padding: .25rem .7rem;
+  border-radius: 20px;
+}
+
+.leaderboard-block {
+  background: linear-gradient(160deg, #FFF8FB 0%, #FFF0F5 100%);
+  border-radius: 14px;
+  padding: .9rem;
+  height: 100%;
+  border: 1px solid #FCE4EC;
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+.leaderboard-block:hover {
+  box-shadow: 0 6px 16px rgba(233, 30, 99, 0.12);
+  transform: translateY(-2px);
+}
+
+.lb-title {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--pink-dark);
+  margin-bottom: .65rem;
+  padding-bottom: .5rem;
+  border-bottom: 1px dashed #F3CADC;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  font-size: .82rem;
+  padding: .4rem .5rem;
+  border-radius: 8px;
+  margin-bottom: .25rem;
+  transition: background .15s ease;
+}
+.lb-row:hover { background: rgba(255,255,255,0.6); }
+
+.lb-rank {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--pink-primary);
+  color: var(--pink-dark);
+  font-size: .72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Gold / Silver / Bronze highlight rows */
+.lb-rank-1 {
+  background: linear-gradient(90deg, #FFF3CD 0%, transparent 100%);
+  border-left: 3px solid #FFC107;
+}
+.lb-rank-1 .lb-rank { background: transparent; font-size: 1.1rem; }
+.lb-rank-1 .lb-name { font-weight: 700; color: #7A5C00; }
+
+.lb-rank-2 {
+  background: linear-gradient(90deg, #F1F1F1 0%, transparent 100%);
+  border-left: 3px solid #B0BEC5;
+}
+.lb-rank-2 .lb-rank { background: transparent; font-size: 1.05rem; }
+.lb-rank-2 .lb-name { font-weight: 600; color: #546E7A; }
+
+.lb-rank-3 {
+  background: linear-gradient(90deg, #FBE3D4 0%, transparent 100%);
+  border-left: 3px solid #D8915E;
+}
+.lb-rank-3 .lb-rank { background: transparent; font-size: 1rem; }
+.lb-rank-3 .lb-name { font-weight: 600; color: #8D5524; }
+
+.lb-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-value {
+  font-weight: 700;
+  color: var(--pink-dark);
+  background: rgba(233, 30, 99, 0.08);
+  padding: .1rem .5rem;
+  border-radius: 10px;
+  font-size: .75rem;
+}
+
+.lb-empty { font-size: .78rem; color: #bbb; text-align: center; padding: 1rem 0; }
+
+.mini-cal-card {
+  background:#FFF8FB;
+  border-radius:12px;
+  padding:.8rem;
+}
+.mini-cal-grid {
+  display:grid;
+  grid-template-columns:repeat(7, 1fr);
+  gap:3px;
+}
+.mini-cal-day {
+  aspect-ratio:1;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;
+  border-radius:4px;
+  background:#FCE4EC;
+  color:#999;
+  text-decoration:none;
+}
+.mini-cal-day.complete { background:#A5D6A7; color:#1B5E20; }
+.mini-cal-day.partial { background:#FFE082; color:#7A5C00; }
+.mini-cal-day.no-entry { background:#F8BBD0; color:#880E4F; }
+.mini-cal-day.today { outline:2px solid var(--pink-dark); }
+</style>
+{% endblock %}
+
 {% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
-  // Trigger analytics on load
-  document.addEventListener('DOMContentLoaded', function() {
-    // analyticsChart canvas id triggers loading in igf.js
-    document.getElementById('readHearChart').id = 'analyticsChart';
-  });
+document.addEventListener('DOMContentLoaded', function() {
+  const ctx = document.getElementById('todayPieChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: {{ pie_labels|safe }},
+        datasets: [{
+          data: {{ pie_data|safe }},
+          backgroundColor: ['#66BB6A', '#FFCA28', '#EF5350'],
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+  }
+});
 </script>
 {% endblock %}
